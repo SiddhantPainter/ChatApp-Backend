@@ -5,7 +5,7 @@
 const app = require("../app");
 const debug = require("debug")("backend:server");
 const http = require("http");
-// M const models = require("../models");
+const models = require("../models");
 /**
  * Get port from environment and store in Express.
  */
@@ -15,26 +15,26 @@ app.set("port", port);
  * Create HTTP server.
  */
 const server = http.createServer(app);
-// const io = require("socket.io")(server);
-// io.on("connection", socket => {
-//   socket.on("join", async room => {
-//     socket.join(room);
-//     io.emit("roomJoined", room);
-//   });
-//   socket.on("message", async data => {
-//     const { chatRoomName, author, message } = data;
-//     const chatRoom = await models.ChatRoom.findAll({
-//       where: { name: chatRoomName },
-//     });
-//     const chatRoomId = chatRoom[0].id;
-//     const chatMessage = await models.ChatMessage.create({
-//       chatRoomId,
-//       author,
-//       message: message,
-//     });
-//     io.emit("newMessage", chatMessage);
-//   });
-// });
+const io = require("socket.io")(server);
+io.on("connection", (socket) => {
+  socket.on("join", async (room) => {
+    socket.join(room);
+    io.emit("roomJoined", room);
+  });
+  socket.on("message", async (data) => {
+    const { chatRoomName, author, message } = data;
+    const chatRoom = await models.ChatRoom.findAll({
+      where: { name: chatRoomName },
+    });
+    const chatRoomId = chatRoom[0].id;
+    const chatMessage = await models.ChatMessage.create({
+      chatRoomId,
+      author,
+      message: message,
+    });
+    io.emit("newMessage", chatMessage);
+  });
+});
 /**
  * Listen on provided port, on all network interfaces.
  */
